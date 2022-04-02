@@ -12,7 +12,7 @@ df$V4[1]<-"AF" #allows this column to be used later - for what?
 #select AF episodes only and remove unneeded columns and rows
 df_1<-df[which(df$V4=="AF"),] 
 mf<-df_1[,-c(1,3,4,6,8,9,10)] 
-mf<-mf[!apply(mf == "", 1, all), ] #can't remember what this does - remove unneeded??
+mf<-mf[!apply(mf == "", 1, all), ] 
 row.names(mf)<-NULL #reset index
 colnames(mf)<-c("recording","date","duration")
 #**ENTER DATE OF MM HERE** 
@@ -98,7 +98,7 @@ for (val in y){
   time_sec<-(hour*60*60)+(minute*60)+sec
   mf$duration_min[val]<-time_sec/60 #get duration in minutes
 }
-mf<-na.omit(mf) #need to figure how to deal with these rows!!
+mf<-na.omit(mf) 
 #remove blanking period (12 weeks)
 mf<-mf[which(mf$new_col>3),] 
 ##flag columns with episodes >30 min for review
@@ -170,5 +170,5 @@ percent_time_24<-(total_time_24/262800)*100 #262800min=6mo
 longest_24<-max(mf_24$duration_min)
 ##print results
 results<-c(percent_time_l,num_less30_l,num_more30_l,longest_episode_l,total_epi_l,total_time_l,percent_time_6,num_less30_6,num_more30_6,longest_6,total_epi_6,total_time_6,percent_time_12,num_less30_12,num_more30_12,longest_12,total_epi_12,total_time_12,percent_time_18,num_less30_18,num_more30_18,longest_18,total_epi_18,total_time_18, percent_time_24,num_less30_24,num_more30_24,longest_24,total_epi_24,total_time_24)
-write.table(results,col.names=FALSE,row.names=FALSE,sep="\t",file="/Users/Brianna/Documents/Wilson.txt")
+write.table(results,col.names=FALSE,row.names=FALSE,sep="\t",file="/Users/Brianna/Documents/LName.txt")
 
