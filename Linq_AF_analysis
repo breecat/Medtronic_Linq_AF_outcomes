@@ -2,24 +2,23 @@ rm(list=ls())
 #df<-read.table(file.choose(),header=FALSE,fill=TRUE,sep = "",quote="",dec=".")
 df<-read.table(pipe("pbpaste"), sep="\t", header = FALSE,stringsAsFactors = FALSE,comment.char="") #gets data from clipboard
 #get elapsed time since latest report (use for lifetime calc)
-entry_length<-nchar(df$V1[1])
-day_latest<-substr(df$V1[1],start=entry_length-12,stop=entry_length-2) 
-df$V5[1]<-day_latest
-if (nchar(day_latest)==10){
-  df$V5[1]<-paste("0",day_latest,sep="")
-}
-df$V4[1]<-"AF" 
+day_latest<-"14-Jan-2024"
+#df$V4[1]<-"AF" #allows this column to be used later - for what?
 #select AF episodes only and remove unneeded columns and rows
 df_1<-df[which(df$V4=="AF"),] 
 mf<-df_1[,-c(1,3,4,6,8,9,10)] 
-mf<-mf[!apply(mf == "", 1, all), ] 
+mf<-mf[!apply(mf == "", 1, all), ] #can't remember what this does - remove unneeded??
 row.names(mf)<-NULL #reset index
 colnames(mf)<-c("recording","date","duration")
 #**ENTER DATE OF MM HERE** 
-day_i<-18
-month_i<-11
+day_i<-02
+month_i<-12
 year_i<-2020
 start_time<-month_i+(day_i/30.42) #months since first day of year of implant
+##trial here
+#add row for today's date
+mf<-rbind(data.frame(recording=1,date=day_latest,duration="01:01:01"),mf)
+##trial end here
 ##add new column for elapsed time
 x<-seq(1,nrow(mf))
 # get elapsed time from start date for each row
@@ -84,21 +83,22 @@ for(val in x){
   mf$new_col[val]<-elapsed_time
 }
 #get elapsed time since implant (in months)
+#time_latest<-mf$new_col[1]
 time_latest<-mf$new_col[1]
-mf<-mf[-c(1),] #now remove that column for mf
+mf<-mf[-c(1),] #now remove that row from mf
 #change duration to #seconds
 y<-seq(1,nrow(mf))
 for (val in y){
-  hour = format(as.POSIXct(mf$duration[val],format="%H:%M:%S"),"%H")
-  hour<-as.numeric(hour) 
-  minute = format(as.POSIXct(mf$duration[val],format="%H:%M:%S"),"%M")
-  minute<-as.numeric(minute)
-  sec = format(as.POSIXct(mf$duration[val],format="%H:%M:%S"),"%S")
-  sec<-as.numeric(sec)
+  length<-as.character(mf$duration[val])
+  split<-strsplit(length,split=":")
+  hour<-as.numeric(split[[1]][[1]])
+  minute<-as.numeric(split[[1]][[2]])
+  sec<-as.numeric(split[[1]][[3]])
   time_sec<-(hour*60*60)+(minute*60)+sec
   mf$duration_min[val]<-time_sec/60 #get duration in minutes
 }
-mf<-na.omit(mf) 
+#mf<-na.omit(mf) #need to figure how to deal with these rows!!
+mf[is.na(mf)] <-5940 # for episodes >99hrs - use 99 hrs (5940 min)
 #remove blanking period (12 weeks)
 mf<-mf[which(mf$new_col>3),] 
 ##flag columns with episodes >30 min for review
@@ -129,7 +129,7 @@ total_time_6<-sum(mf_6$duration_min)
 percent_time_6<-(total_time_6/131400)*100 #131400min=3mo
 #longest episode
 longest_6<-max(mf_6$duration_min)
-##6-12 months post Sx##
+##6-12 months since implant##
 mf_12<-mf[which(mf$new_col<12 & mf$new_col>=6),]
 #total episodes
 total_epi_12<-nrow(mf_12)
@@ -142,7 +142,7 @@ total_time_12<-sum(mf_12$duration_min)
 percent_time_12<-(total_time_12/262800)*100 #262800min=6mo
 #longest episode
 longest_12<-max(mf_12$duration_min)
-##12-18 months post Sx##
+##12-18 months since implant
 mf_18<-mf[which(mf$new_col<18 & mf$new_col>=12),]
 #total episodes
 total_epi_18<-nrow(mf_18)
@@ -155,7 +155,7 @@ total_time_18<-sum(mf_18$duration_min)
 percent_time_18<-(total_time_18/262800)*100 #262800min=6mo
 #longest episode
 longest_18<-max(mf_18$duration_min)
-##18-24 months post Sx## 
+##18-24 months post Sx## incomplete section
 mf_24<-mf[which(mf$new_col<24 & mf$new_col>=18),]
 #total episodes
 total_epi_24<-nrow(mf_24)
@@ -168,6 +168,6 @@ total_time_24<-sum(mf_24$duration_min)
 percent_time_24<-(total_time_24/262800)*100 #262800min=6mo
 #longest episode
 longest_24<-max(mf_24$duration_min)
-##print results
+#print results  
 results<-c(percent_time_l,num_less30_l,num_more30_l,longest_episode_l,total_epi_l,total_time_l,percent_time_6,num_less30_6,num_more30_6,longest_6,total_epi_6,total_time_6,percent_time_12,num_less30_12,num_more30_12,longest_12,total_epi_12,total_time_12,percent_time_18,num_less30_18,num_more30_18,longest_18,total_epi_18,total_time_18, percent_time_24,num_less30_24,num_more30_24,longest_24,total_epi_24,total_time_24)
-write.table(results,col.names=FALSE,row.names=FALSE,sep="\t",file="/Users/Brianna/Documents/Name.txt")
+write.table(results,col.names=FALSE,row.names=FALSE,sep="\t",file="/Users/Brianna/Documents/Test.txt")
